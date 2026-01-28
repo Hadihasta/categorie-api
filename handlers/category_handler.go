@@ -5,6 +5,8 @@ import (
 	"categories-api/services"
 	"encoding/json"
 	"net/http"
+	"strconv"
+	"strings"
 )
 
 type CategoryHandler struct {
@@ -69,3 +71,80 @@ func (h *CategoryHandler) Create(w http.ResponseWriter, r*http.Request){
 	json.NewEncoder(w).Encode(category)
 }
 
+
+
+func (h *CategoryHandler) HandleCategoryByID(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		h.GetByID(w, r)
+	case http.MethodPut:
+		h.Update(w, r)
+	case http.MethodDelete:
+		h.Delete(w, r)
+	default:
+		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+	}
+}
+
+
+func (h *CategoryHandler) GetByID(w http.ResponseWriter, r *http.Request) {
+	idStr := strings.TrimPrefix(r.URL.Path, "/api/category/")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Error(w, "Invalid category ID", http.StatusBadRequest)
+		return
+	}
+
+	category, err := h.service.GetByID(id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(category)
+}
+
+
+
+func (h *CategoryHandler) Update(w http.ResponseWriter, r *http.Request) {
+	idStr := strings.TrimPrefix(r.URL.Path, "/api/category/")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Error(w, "Invalid category ID", http.StatusBadRequest)
+		return
+	}
+
+	var category models.Categories
+	if err := json.NewDecoder(r.Body).Decode(&category); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	category.ID = id
+
+	if err := h.service.Update(&category); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(category)
+}
+
+
+func (h *CategoryHandler) Delete(w http.ResponseWriter, r *http.Request) {
+	idStr := strings.TrimPrefix(r.URL.Path, "/api/category/")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Error(w, "Invalid category ID", http.StatusBadRequest)
+		return
+	}
+
+	if err := h.service.Delete(id); err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
