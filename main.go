@@ -1,12 +1,26 @@
 package main
 
 import (
+	"categories-api/database"
+	"categories-api/handlers"
+	"categories-api/repositories"
+	"categories-api/services"
+
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
+
+	"github.com/spf13/viper"
 )
+
+type Config struct {
+	Port   string `mapstructure:"PORT"`
+	DBConn string `mapstructure:"DB_CONN"`
+}
 
 type Categorie struct {
 	ID          int    `json:"id"`
@@ -44,15 +58,14 @@ func getCategorieById(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func updateCategorieById(w http.ResponseWriter, r *http.Request) {
 
-func updateCategorieById(w http.ResponseWriter, r *http.Request){
-
-		if r.Method != http.MethodPut {
+	if r.Method != http.MethodPut {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
-		// ambil ID
+	// ambil ID
 	idStr := strings.TrimPrefix(r.URL.Path, "/api/categorie/")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
@@ -62,16 +75,16 @@ func updateCategorieById(w http.ResponseWriter, r *http.Request){
 
 	var updateCategorie Categorie
 	err = json.NewDecoder(r.Body).Decode(&updateCategorie)
-	if err != nil{
-		http.Error(w,"invalid request", http.StatusBadRequest)
+	if err != nil {
+		http.Error(w, "invalid request", http.StatusBadRequest)
 		return
 	}
 
-	for i := range categorie{
-		if categorie[i].ID == id{
+	for i := range categorie {
+		if categorie[i].ID == id {
 			updateCategorie.ID = id
 			categorie[i] = updateCategorie
-			
+
 			w.Header().Set("Content-Type", "application/json")
 			json.NewEncoder(w).Encode(updateCategorie)
 			return
@@ -81,9 +94,8 @@ func updateCategorieById(w http.ResponseWriter, r *http.Request){
 
 }
 
-
-func deleteCategorieById(w http.ResponseWriter, r *http.Request){ 
-		if r.Method != http.MethodDelete {
+func deleteCategorieById(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodDelete {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
@@ -95,16 +107,15 @@ func deleteCategorieById(w http.ResponseWriter, r *http.Request){
 		return
 	}
 
-
-	for i, c := range categorie{
-		if c.ID == id{
+	for i, c := range categorie {
+		if c.ID == id {
 			// cara menghapusnya gabungkan dari index ke i (yang mau di hapus ) dan semua sesudah index ke i (yang mau di hapus)
 			categorie = append(categorie[:i], categorie[i+1:]...)
 
 			w.Header().Set("Content-Type", "application/json")
 			json.NewEncoder(w).Encode(map[string]string{
 				// best practice delete tidak return data yang di delete
-				"message" : "sukses Delete",
+				"message": "sukses Delete",
 			})
 			return
 		}
@@ -113,6 +124,31 @@ func deleteCategorieById(w http.ResponseWriter, r *http.Request){
 }
 
 func main() {
+
+	viper.AutomaticEnv()
+	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+
+	if _, err := os.Stat(".env"); err == nil {
+		viper.SetConfigFile(".env")
+		_ = viper.ReadInConfig()
+	}
+
+	config := Config{
+		Port:   viper.GetString("PORT"),
+		DBConn: viper.GetString("DB_CONN"),
+	}
+
+	db, err := database.InitDB(config.DBConn)
+	if err != nil {
+		log.Fatal("Failed to initialize database:", err)
+	}
+	defer db.Close()
+
+	productRepo := repositories.NewProductRepository(db)
+	productService := services.NewProductService(productRepo)
+	productHandler := handlers.NewProductHandler(productService)
+
+	http.HandleFunc("/api/product", productHandler.HandleProducts)
 
 	// localhost 8080/health
 	http.HandleFunc("/api/health", func(w http.ResponseWriter, r *http.Request) {
@@ -147,17 +183,19 @@ func main() {
 	http.HandleFunc("/api/categorie/", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == "GET" {
 			getCategorieById(w, r)
-		}else if r.Method == "PUT"{ 
-			updateCategorieById(w,r)
-		}else if r.Method == "DELETE"{
-			deleteCategorieById(w,r)
+		} else if r.Method == "PUT" {
+			updateCategorieById(w, r)
+		} else if r.Method == "DELETE" {
+			deleteCategorieById(w, r)
 		}
 
 	})
 
-	fmt.Println("server running 8080")
-	err := http.ListenAndServe(":8080", nil)
+		// format for listen and serve :(port)
+	addr := ":" + config.Port
+
+	err = http.ListenAndServe(addr, nil)
 	if err != nil {
-		fmt.Println("gagal running")
+		fmt.Println("gagal running server", err)
 	}
 }
