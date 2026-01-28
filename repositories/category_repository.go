@@ -45,3 +45,5 @@ func (repo *CategoryRepository) Create(category *models.Categories) error {
 	err := repo.db.QueryRow(query, category.Title, category.Description).Scan(&category.ID)
 	return err
 }
+
+

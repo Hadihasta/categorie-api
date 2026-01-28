@@ -28,3 +28,5 @@ func (s *CategoryService) Create(category *models.Categories) error {
 
 	return s.repo.Create(category)
 }
+
+

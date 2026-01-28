@@ -151,6 +151,7 @@ func main() {
 	categoryHandler := handlers.NewCategoryHandler(categoryService)
 
 	http.HandleFunc("/api/product", productHandler.HandleProducts)
+	http.HandleFunc("/api/product/", productHandler.HandleProductByID)
 	http.HandleFunc("/api/category", categoryHandler.HandleCategorys)
 
 	// localhost 8080/health

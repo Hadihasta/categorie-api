@@ -40,7 +40,6 @@ func (h *CategoryHandler) GetAll(w http.ResponseWriter, r*http.Request){
 }
 
 
-
 func (h *CategoryHandler) Create(w http.ResponseWriter, r*http.Request){
 	var category models.Categories
 
@@ -69,3 +68,4 @@ func (h *CategoryHandler) Create(w http.ResponseWriter, r*http.Request){
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(category)
 }
+
