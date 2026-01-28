@@ -14,7 +14,19 @@ func NewProductRepository(db *sql.DB) *ProductRepository{
 }
 
 func (repo *ProductRepository) GetAll() ([]models.Product, error){
-	query := "SELECT id, name, price, stock FROM products"
+	query :=`
+		SELECT 
+			products.id,
+			products.name,
+			products.price,
+			products.stock,
+			categories.id,
+			categories.title
+		FROM products 
+		INNER JOIN categories 
+			ON products.category_id = categories.id
+	`
+				
 	rows, err := repo.db.Query(query)
 	if err != nil{
 		return nil, err

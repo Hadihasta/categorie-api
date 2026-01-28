@@ -2,3 +2,5 @@
 categorie-api
 categorie-api.exe
 .env
+tmp
+.air.toml
