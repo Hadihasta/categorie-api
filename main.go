@@ -7,7 +7,6 @@ import (
 	"categories-api/services"
 	"encoding/json"
 
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -20,7 +19,6 @@ type Config struct {
 	Port   string `mapstructure:"PORT"`
 	DBConn string `mapstructure:"DB_CONN"`
 }
-
 
 func main() {
 
@@ -64,13 +62,18 @@ func main() {
 			"message": "API running",
 		})
 	})
+	port := config.Port
+	if port == "" {
+		port = "8080"
+	}
 
-
-	// format for listen and serve :(port)
-	addr := ":" + config.Port
+	addr := ":" + port
+	log.Println("server running on", addr)
 
 	err = http.ListenAndServe(addr, nil)
 	if err != nil {
-		fmt.Println("gagal running server", err)
+		log.Fatal(err)
 	}
+
+	_ = db
 }

@@ -4,6 +4,7 @@ import (
 	"categories-api/models"
 	"categories-api/services"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -24,24 +25,23 @@ func (h *ProductHandler) HandleProducts(w http.ResponseWriter, r *http.Request) 
 		h.GetAll(w, r)
 	case http.MethodPost:
 		h.Create(w, r)
-	default: 
-	http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+	default:
+		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 	}
 }
 
-
-
-func (h *ProductHandler) GetAll(w http.ResponseWriter, r*http.Request){
+func (h *ProductHandler) GetAll(w http.ResponseWriter, r *http.Request) {
+	name := r.URL.Query().Get("name")
+	fmt.Println(name)
 	products, err := h.service.GetAll()
-	if err != nil{
-		http.Error(w, err.Error(),http.StatusInternalServerError)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	w.Header().Set("Content-Type","application/json")
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(products)
 }
-
 
 func (h *ProductHandler) Create(w http.ResponseWriter, r *http.Request) {
 	var product models.Product
@@ -51,20 +51,16 @@ func (h *ProductHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-
 	err = h.service.Create(&product)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(product)
 }
-
-
 
 // HandleProductByID - GET/PUT/DELETE /api/produk/{id}
 func (h *ProductHandler) HandleProductByID(w http.ResponseWriter, r *http.Request) {
@@ -79,9 +75,6 @@ func (h *ProductHandler) HandleProductByID(w http.ResponseWriter, r *http.Reques
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	}
 }
-
-
-
 
 // GetByID - GET /api/produk/{id}
 func (h *ProductHandler) GetByID(w http.ResponseWriter, r *http.Request) {
