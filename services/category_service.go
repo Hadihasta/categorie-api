@@ -10,12 +10,11 @@ type CategoryService struct {
 	repo *repositories.CategoryRepository
 }
 
-func NewCategoryService(repo *repositories.CategoryRepository) *CategoryService{
-	return  &CategoryService{repo : repo}
+func NewCategoryService(repo *repositories.CategoryRepository) *CategoryService {
+	return &CategoryService{repo: repo}
 }
 
-
-func (c *CategoryService) GetAll() ([]models.Categories, error){
+func (c *CategoryService) GetAll() ([]models.Categories, error) {
 	return c.repo.GetAll()
 }
 
@@ -41,7 +40,6 @@ func (s *CategoryService) Update(category *models.Categories) error {
 	}
 	return s.repo.Update(category)
 }
-
 
 func (s *CategoryService) Delete(id int) error {
 	return s.repo.Delete(id)

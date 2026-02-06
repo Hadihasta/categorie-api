@@ -64,7 +64,6 @@ func (repo *CategoryRepository) Create(category *models.Categories) error {
 	return err
 }
 
-
 func (repo *CategoryRepository) Update(category *models.Categories) error {
 	query := `
 		UPDATE categories
@@ -92,7 +91,6 @@ func (repo *CategoryRepository) Update(category *models.Categories) error {
 
 	return nil
 }
-
 
 func (repo *CategoryRepository) Delete(id int) error {
 	query := "DELETE FROM categories WHERE id = $1"

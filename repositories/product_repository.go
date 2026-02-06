@@ -10,13 +10,13 @@ type ProductRepository struct {
 	db *sql.DB
 }
 
-func NewProductRepository(db *sql.DB) *ProductRepository{
-	return &ProductRepository{db : db}
+func NewProductRepository(db *sql.DB) *ProductRepository {
+	return &ProductRepository{db: db}
 }
 
-func (repo *ProductRepository) GetAll() ([]models.Product, error) {
+func (repo *ProductRepository) GetAll(name string) ([]models.Product, error) {
 	query := `
-		SELECT 
+		SELECT
 			p.id,
 			p.name,
 			p.price,
@@ -30,7 +30,17 @@ func (repo *ProductRepository) GetAll() ([]models.Product, error) {
 			ON p.category_id = c.id
 	`
 
-	rows, err := repo.db.Query(query)
+	// query := "SELECT id, name, price, stock FROM products"
+	// karena argumens bisa macam macam yang di input user kita pakai interface data type
+
+	var args []interface {
+	}
+	// jika name != "" make query ditambah where ILIKE
+	if name != "" {
+		query += " WHERE name ILIKE $1"
+		args = append(args, "%"+name+"%")
+	}
+	rows, err := repo.db.Query(query, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -67,7 +77,6 @@ func (repo *ProductRepository) GetAll() ([]models.Product, error) {
 	return products, nil
 }
 
-
 func (repo *ProductRepository) Create(product *models.Product) error {
 	query := `
 		INSERT INTO products (name, price, stock, category_id)
@@ -83,8 +92,6 @@ func (repo *ProductRepository) Create(product *models.Product) error {
 		product.CategoryID,
 	).Scan(&product.ID)
 }
-
-
 
 // GetByID - ambil produk by ID
 func (repo *ProductRepository) GetByID(id int) (*models.Product, error) {
