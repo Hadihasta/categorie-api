@@ -38,6 +38,7 @@ func (repo *ProductRepository) GetAll(name string) ([]models.Product, error) {
 	// jika name != "" make query ditambah where ILIKE
 	if name != "" {
 		query += " WHERE name ILIKE $1"
+		// mengurangi resiko SQL injection karena args diluar dari querynya
 		args = append(args, "%"+name+"%")
 	}
 	rows, err := repo.db.Query(query, args...)
