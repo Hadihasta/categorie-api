@@ -1,0 +1,22 @@
+package middlewares
+
+import (
+	"log"
+	"net/http"
+	"time"
+)
+
+// func (api key) func handler http.handler
+
+func Logger(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request){
+		start := time.Now()
+
+		log.Printf("[REQUEST] %s %s dari %s", r.Method,r.RequestURI, r.RemoteAddr )
+
+		next(w,r)
+
+		duration := time.Since(start)
+		log.Printf("\n[DONE] %s %s selesai dalam %v", r.Method, r.RequestURI, duration)
+		}
+	}
