@@ -54,10 +54,10 @@ func main() {
 	categoryService := services.NewCategoryService(categoryRepo)
 	categoryHandler := handlers.NewCategoryHandler(categoryService)
 
-	// using middleware logger
-	http.HandleFunc("/api/product", middlewares.Logger( productHandler.HandleProducts))
-	// using middleware logger &  APIKEY
-	http.HandleFunc("/api/product/", middlewares.Logger(apiKeyMiddleware(productHandler.HandleProductByID)))
+	// using middleware  CORS & logger
+	http.HandleFunc("/api/product", middlewares.CORS(middlewares.Logger(productHandler.HandleProducts)))
+	// using middleware CORS & logger &  APIKEY
+	http.HandleFunc("/api/product/", middlewares.CORS(middlewares.Logger(apiKeyMiddleware(productHandler.HandleProductByID))))
 	http.HandleFunc("/api/category", categoryHandler.HandleCategorys)
 	http.HandleFunc("/api/category/", categoryHandler.HandleCategoryByID)
 
@@ -65,8 +65,8 @@ func main() {
 	transactionService := services.NewTransactionService(transactionRepo)
 	transactionHandler := handlers.NewTransactionHandler(transactionService)
 
-	// using middleware logger & APIKEY 
-	http.HandleFunc("/api/checkout", middlewares.Logger(apiKeyMiddleware(transactionHandler.Checkout)))
+	// using middleware CORS & logger & APIKEY
+	http.HandleFunc("/api/checkout", middlewares.CORS(middlewares.Logger(apiKeyMiddleware(transactionHandler.Checkout))))
 
 	reportRepo := repositories.NewReportRepository(db)
 	reportService := services.NewReportService(reportRepo)
