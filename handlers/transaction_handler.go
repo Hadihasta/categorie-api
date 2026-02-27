@@ -27,12 +27,20 @@ func (h *TransactionHandler) HandleCheckout(w http.ResponseWriter, r *http.Reque
 
 func (h *TransactionHandler) Checkout(w http.ResponseWriter, r *http.Request) {
 	var req models.CheckoutRequest
+	// 	type CheckoutItem struct {
+	// 	ProductID int `json:"product_id"`
+	// 	Quantity  int `json:"quantity"`
+	// }
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 	transaction, err := h.service.Checkout(req.Items)
+// 	func (s *TransactionService) Checkout(items []models.CheckoutItem) (*models.Transaction, error) {
+// 	return s.repo.CreateTransaction(items)
+// }
+
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

@@ -3,6 +3,7 @@ package main
 import (
 	"categories-api/database"
 	"categories-api/handlers"
+	"categories-api/middlewares"
 	"categories-api/repositories"
 	"categories-api/services"
 	"encoding/json"
@@ -18,6 +19,7 @@ import (
 type Config struct {
 	Port   string `mapstructure:"PORT"`
 	DBConn string `mapstructure:"DB_CONN"`
+	APiKey string `mapstructure:"API_KEY"`
 }
 
 func main() {
@@ -33,6 +35,7 @@ func main() {
 	config := Config{
 		Port:   viper.GetString("PORT"),
 		DBConn: viper.GetString("DB_CONN"),
+		APiKey: viper.GetString("API_KEY"),
 	}
 
 	db, err := database.InitDB(config.DBConn)
@@ -40,6 +43,8 @@ func main() {
 		log.Fatal("Failed to initialize database:", err)
 	}
 	defer db.Close()
+
+	apiKeyMiddleware := middlewares.APIKEY(config.APiKey)
 
 	productRepo := repositories.NewProductRepository(db)
 	productService := services.NewProductService(productRepo)
@@ -50,7 +55,8 @@ func main() {
 	categoryHandler := handlers.NewCategoryHandler(categoryService)
 
 	http.HandleFunc("/api/product", productHandler.HandleProducts)
-	http.HandleFunc("/api/product/", productHandler.HandleProductByID)
+	// using middleware
+	http.HandleFunc("/api/product/", apiKeyMiddleware(productHandler.HandleProductByID))
 	http.HandleFunc("/api/category", categoryHandler.HandleCategorys)
 	http.HandleFunc("/api/category/", categoryHandler.HandleCategoryByID)
 
@@ -58,7 +64,8 @@ func main() {
 	transactionService := services.NewTransactionService(transactionRepo)
 	transactionHandler := handlers.NewTransactionHandler(transactionService)
 
-	http.HandleFunc("/api/checkout", transactionHandler.Checkout)
+	// using middleware
+	http.HandleFunc("/api/checkout", apiKeyMiddleware(transactionHandler.Checkout))
 
 	reportRepo := repositories.NewReportRepository(db)
 	reportService := services.NewReportService(reportRepo)
